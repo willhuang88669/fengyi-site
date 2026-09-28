@@ -93,3 +93,26 @@ form.addEventListener('submit', (e) => {
   window.location.href = `mailto:yoko7377@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   status.textContent = '已為您開啟 Email，確認內容後按下寄出即可。也歡迎直接來電或加 LINE。';
 });
+
+// 深色／淺色模式切換：沒選過就跟隨系統設定
+const themeBtn = document.querySelector('.theme-toggle');
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+function currentTheme() {
+  return document.documentElement.dataset.theme || (systemDark.matches ? 'dark' : 'light');
+}
+
+function syncThemeButton() {
+  const dark = currentTheme() === 'dark';
+  themeBtn.setAttribute('aria-label', dark ? '切換成淺色模式' : '切換成深色模式');
+}
+
+themeBtn.addEventListener('click', () => {
+  const next = currentTheme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem('theme', next); } catch (e) {}
+  syncThemeButton();
+});
+
+systemDark.addEventListener('change', syncThemeButton);
+syncThemeButton();
