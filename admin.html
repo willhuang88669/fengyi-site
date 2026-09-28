@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    try { var t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <title>楓藝｜諮詢後台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@400;500&family=Montserrat:wght@400;500;600&family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+  <div class="crm">
+    <!-- 左側欄 -->
+    <aside class="crm-side">
+      <div class="crm-brand">
+        <svg class="crm-brand-mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4l5 12 9-5-2 11 12-2-7 10 9 5-12 4 3 7-11-3-2 13-4-9-4 9-2-13-11 3 3-7-12-4 9-5-7-10 12 2-2-11 9 5z" fill="currentColor"/></svg>
+        <span class="crm-brand-name">楓藝</span>
+        <span class="crm-brand-sub">諮詢後台</span>
+      </div>
+
+      <nav class="crm-nav" aria-label="後台選單">
+        <p class="crm-nav-label">管理</p>
+        <a class="crm-nav-item is-active" href="#" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 10h16M9 10v9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          諮詢紀錄
+          <span class="crm-nav-badge" id="nav-new-count" hidden></span>
+        </a>
+
+        <p class="crm-nav-label">工具</p>
+        <button class="crm-nav-item" type="button" id="btn-export">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 19h14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          匯出 Excel
+        </button>
+        <button class="crm-nav-item" type="button" id="btn-refresh">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 11-2.3-5.7M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          重新整理
+        </button>
+        <a class="crm-nav-item" href="./" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5H5V6h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          查看官網
+        </a>
+      </nav>
+
+      <div class="crm-side-foot">
+        <button class="theme-toggle" type="button" aria-label="切換深色模式">
+          <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- 主畫面 -->
+    <main class="crm-main" id="main">
+      <header class="crm-top">
+        <div>
+          <h1>諮詢紀錄</h1>
+          <p class="crm-top-sub" id="result-count" aria-live="polite"></p>
+        </div>
+        <button class="crm-btn-primary" type="button" id="btn-new">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          新增諮詢
+        </button>
+      </header>
+
+      <section class="admin-message" id="msg-denied" hidden>
+        <h2>網址不正確</h2>
+        <p>請使用完整的後台網址。</p>
+      </section>
+      <section class="admin-message" id="msg-error" hidden>
+        <h2>讀取失敗</h2>
+        <p>可能是網路不穩，請再試一次。</p>
+        <button class="crm-btn-primary" type="button" id="btn-retry">重試</button>
+      </section>
+      <p class="loading" id="loading" role="status">讀取中…</p>
+
+      <div id="app" hidden>
+        <nav class="crm-tabs" id="stage-tabs" aria-label="依進度篩選"></nav>
+
+        <div class="crm-toolbar">
+          <label class="crm-search">
+            <span class="visually-hidden">搜尋</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <input type="search" id="search" placeholder="搜尋姓名、電話、縣市、需求、備註">
+          </label>
+          <label class="crm-select">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="visually-hidden">排序</span>
+            <select id="sort">
+              <option value="new">最新的在前</option>
+              <option value="old">最舊的在前</option>
+              <option value="updated">最近更新</option>
+              <option value="stage">依進度</option>
+            </select>
+          </label>
+          <label class="crm-select">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-7.5-7-12a7 7 0 0114 0c0 4.5-7 12-7 12z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            <span class="visually-hidden">依縣市篩選</span>
+            <select id="city-filter"><option value="">全部縣市</option></select>
+          </label>
+        </div>
+
+        <div class="crm-table-wrap">
+          <table class="crm-table">
+            <thead>
+              <tr>
+                <th class="col-num" scope="col">#</th>
+                <th scope="col">客人</th>
+                <th scope="col">電話</th>
+                <th scope="col">縣市</th>
+                <th scope="col">工程類型</th>
+                <th scope="col">需求說明</th>
+                <th scope="col">我的備註</th>
+                <th scope="col">進度</th>
+                <th scope="col">建立</th>
+                <th class="col-act" scope="col"><span class="visually-hidden">操作</span></th>
+              </tr>
+            </thead>
+            <tbody id="list"></tbody>
+          </table>
+          <p class="empty" id="empty" hidden>沒有符合的諮詢紀錄。</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 詳細資料 -->
+  <dialog class="panel" id="detail" aria-labelledby="detail-name">
+    <form method="dialog" class="panel-close-form"><button class="panel-close" aria-label="關閉"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></form>
+    <p class="eyebrow" id="detail-meta"></p>
+    <h2 id="detail-name"></h2>
+    <dl class="detail-info">
+      <div><dt>電話</dt><dd><a id="detail-phone"></a></dd></div>
+      <div><dt>服務縣市</dt><dd id="detail-city"></dd></div>
+      <div class="detail-info-full"><dt>工程類型</dt><dd id="detail-type"></dd></div>
+      <div class="detail-info-full"><dt>需求說明</dt><dd id="detail-message" class="pre"></dd></div>
+    </dl>
+    <form class="detail-edit" id="detail-form">
+      <div class="field">
+        <label for="d-stage">進度</label>
+        <select id="d-stage" name="stage"></select>
+      </div>
+      <div class="field">
+        <label for="d-note">我的備註</label>
+        <textarea id="d-note" name="note" rows="4" placeholder="例如：週六下午場勘、報價 12 萬"></textarea>
+      </div>
+      <button class="crm-btn-primary" type="submit">儲存</button>
+      <p class="form-status" role="status" aria-live="polite"></p>
+    </form>
+    <div class="detail-footer">
+      <p class="detail-updated" id="detail-updated"></p>
+      <button class="btn-delete" type="button" id="detail-delete">刪除這筆資料</button>
+    </div>
+  </dialog>
+
+  <!-- 手動新增 -->
+  <dialog class="panel" id="create" aria-labelledby="create-title">
+    <form method="dialog" class="panel-close-form"><button class="panel-close" aria-label="關閉"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></form>
+    <h2 id="create-title">新增諮詢</h2>
+    <p class="panel-sub">客人直接來電或加 LINE 時，在這裡記下來。</p>
+    <form class="create-form" id="create-form" novalidate>
+      <div class="field">
+        <label for="c-name">姓名 <span aria-hidden="true">*</span></label>
+        <input id="c-name" name="name" required>
+      </div>
+      <div class="field">
+        <label for="c-phone">電話 <span aria-hidden="true">*</span></label>
+        <input id="c-phone" name="phone" type="tel" required>
+      </div>
+      <div class="field">
+        <label for="c-city">服務縣市</label>
+        <select id="c-city" name="city">
+          <option value="">請選擇</option>
+          <optgroup label="北部">
+            <option>臺北市</option>
+            <option>新北市</option>
+            <option>基隆市</option>
+            <option>桃園市</option>
+            <option>新竹市</option>
+            <option>新竹縣</option>
+            <option>宜蘭縣</option>
+          </optgroup>
+          <optgroup label="中部">
+            <option>苗栗縣</option>
+            <option>臺中市</option>
+            <option>彰化縣</option>
+            <option>南投縣</option>
+            <option>雲林縣</option>
+          </optgroup>
+          <optgroup label="南部">
+            <option>嘉義市</option>
+            <option>嘉義縣</option>
+            <option>臺南市</option>
+            <option>高雄市</option>
+            <option>屏東縣</option>
+          </optgroup>
+          <optgroup label="東部">
+            <option>花蓮縣</option>
+            <option>臺東縣</option>
+          </optgroup>
+          <optgroup label="離島">
+            <option>澎湖縣</option>
+            <option>金門縣</option>
+            <option>連江縣</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="field">
+        <label for="c-type">工程類型</label>
+        <select id="c-type" name="type">
+          <option value="">請選擇</option>
+          <option>休閒建築（涼亭、廊道、屋頂平台）</option>
+          <option>圍欄與屏障（圍籬、格柵、遮罩）</option>
+          <option>水岸與地坪（地板、棧道、階梯）</option>
+          <option>其他／還不確定</option>
+        </select>
+      </div>
+      <div class="field field--full">
+        <label for="c-message">需求說明</label>
+        <textarea id="c-message" name="message" rows="3"></textarea>
+      </div>
+      <div class="field field--full">
+        <label for="c-note">我的備註</label>
+        <textarea id="c-note" name="note" rows="2"></textarea>
+      </div>
+      <button class="crm-btn-primary" type="submit">新增</button>
+      <p class="form-status" role="status" aria-live="polite"></p>
+    </form>
+  </dialog>
+
+  <!-- 刪除二次確認 -->
+  <dialog class="panel panel--confirm" id="confirm-delete" aria-labelledby="confirm-title" aria-describedby="confirm-desc">
+    <h2 id="confirm-title">確定要刪除嗎？</h2>
+    <p id="confirm-desc" class="panel-sub"></p>
+    <div class="confirm-actions">
+      <button class="crm-btn-ghost" type="button" id="confirm-cancel">取消</button>
+      <button class="crm-btn-danger" type="button" id="confirm-ok">刪除</button>
+    </div>
+    <p class="form-status" role="status" aria-live="polite"></p>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="config.js" defer></script>
+  <script src="admin.js" defer></script>
+</body>
+</html>
